@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import {
   Box,
   Input,
@@ -18,35 +18,19 @@ const Savings = () => {
 
   // Ambil saldo awal
   useEffect(() => {
-    const fetchSaldo = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/savings");
-        const data = await res.json();
-        setSaldoAwal(data.amount || 0);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchSaldo();
+    const saveSaldo = localStorage.getItem("saldo");
+    if (saveSaldo) {
+      setSaldoAwal(parseFloat(saveSaldo));
+    }
   }, []);
 
   // Simpan saldo baru
-  const handleSaveSaldo = async () => {
-    const newSaldo = parseFloat(inputSaldo);
+  const handleSaveSaldo = () => {
+    const newSaldo = parseeFload(inputSaldo);
     if (isNaN(newSaldo)) return;
-
-    try {
-      const res = await fetch("http://localhost:5000/api/savings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: newSaldo }),
-      });
-      const data = await res.json();
-      setSaldoAwal(data.amount);
-      setInputSaldo("");
-    } catch (err) {
-      console.error(err);
-    }
+    setSaldoAwal(newSaldo);
+    localStorage.setItem("saldo", JSON.stringify(newSaldo));
+    setInputSaldo("");
   };
 
   return (

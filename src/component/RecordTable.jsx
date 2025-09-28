@@ -53,89 +53,34 @@ const RecordTable = ({ items = [], setItems }) => {
   };
 
   // Simpan hasil edit ke backend dan update frontend
-  const handleSaveEdit = async () => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/records/${selectedItem.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...editValues, date: selectedItem.date }),
-      });
-      const data = await res.json();
-      if (data.updated) {
-        // update frontend
-        setItems(items.map(item =>
-          item.id === selectedItem.id ? { ...item, ...editValues } : item
-        ));
-        onClose();
-      }
-    } catch (err) {
-      console.error("Gagal update:", err);
-    }
-  };
+  const handleSaveEdit = () => {
+  setItems(items.map(item =>
+    item.id === selectedItem.id ? { ...item, ...editValues } : item
+  ));
 
-  // Hapus record
-  // Hapus record
-const handleDelete = async (item) => {
-  try {
-    const token = localStorage.getItem("token");
+  // Simpan ke localStorage
+  const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
+  const updated = allRecords.map(item =>
+    item.id === selectedItem.id ? { ...item, ...editValues } : item
+  );
+  localStorage.setItem("records", JSON.stringify(updated));
 
-    // Hapus record
-    const res = await fetch(`http://localhost:5000/api/records/${item.id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`, // ✅ pakai token
-      },
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text || "Gagal menghapus data");
-    }
-
-    const data = await res.json();
-    if (!data.deleted) {
-      throw new Error("Record tidak terhapus");
-    }
-
-    // Update frontend (hapus dari state)
-    setItems((prev) => prev.filter((it) => it.id !== item.id));
-
-    // Ambil saldo saat ini
-    const saldoRes = await fetch("http://localhost:5000/api/savings", {
-      headers: {
-        Authorization: `Bearer ${token}`, // ✅ pakai token juga
-      },
-    });
-
-    if (!saldoRes.ok) {
-      const text = await saldoRes.text();
-      throw new Error(text || "Gagal ambil saldo");
-    }
-
-    const saldoData = await saldoRes.json();
-    let saldoBaru = saldoData.amount;
-
-    // Sesuaikan saldo
-    if (item.jenis === "pemasukan") {
-      saldoBaru -= item.jumlah;
-    } else if (item.jenis === "pengeluaran") {
-      saldoBaru += item.jumlah;
-    }
-
-    // Update saldo di backend
-    await fetch("http://localhost:5000/api/savings", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // ✅ jangan lupa token
-      },
-      body: JSON.stringify({ amount: saldoBaru }),
-    });
-
-  } catch (err) {
-    console.error("Gagal menghapus data:", err.message);
-  }
+  onClose();
 };
+
+
+  // Hapus record
+  // Hapus record
+const handleDelete = (item) => {
+  // Hapus dari state
+  setItems((prev) => prev.filter((it) => it.id !== item.id));
+
+  // Hapus dari localStorage
+  const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
+  const updated = allRecords.filter((it) => it.id !== item.id);
+  localStorage.setItem("records", JSON.stringify(updated));
+};
+
 
 
 

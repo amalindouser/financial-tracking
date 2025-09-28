@@ -18,26 +18,15 @@ function Login({ onLogin }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    try {
-      const res = await fetch("http://localhost:5000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
 
-
-      if (!res.ok) {
-        setError(data.error || "Login failed");
-        return;
-      }
-
-      const data = await res.json();
-
-      localStorage.setItem("token", data.token); // simpan token
-      navigate("/");
-      onLogin(data.token); // update state App.js
-    } catch (err) {
-      setError("Server error");
+    const dummyUser = { username:"viki", password:"2312" };
+    if(username === dummyUser.username && password === dummyUser.password){
+      const fakeToken = "dummy-token-2312";
+      localStorage.setItem("token", fakeToken);
+      onLogin(fakeToken);
+      navigate("/"); // redirect ke home setelah login
+    }else{
+      setError("Username atau password salah");
     }
   };
 
