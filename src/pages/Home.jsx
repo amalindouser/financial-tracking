@@ -23,7 +23,7 @@ const Home = () => {
   };
 
   return (
-    <Box p={6} bg="gray.50" minH="100vh">
+    <Box p={6} bg="white" minH="100vh">
       <Flex justify="left" mb={6}>
         <AddRecordModal onAdd={handleAddRecord} />
       </Flex>

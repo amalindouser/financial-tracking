@@ -7,8 +7,10 @@ import {
   Button,
   Alert,
   AlertIcon,
+  Flex,
+  Image,
 } from "@chakra-ui/react";
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Login({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -16,46 +18,87 @@ function Login({ onLogin }) {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
 
-    const dummyUser = { username:"viki", password:"2312" };
-    if(username === dummyUser.username && password === dummyUser.password){
+    const dummyUser = { username: "viki", password: "2312" };
+    if (username === dummyUser.username && password === dummyUser.password) {
       const fakeToken = "dummy-token-2312";
       localStorage.setItem("token", fakeToken);
       onLogin(fakeToken);
       navigate("/"); // redirect ke home setelah login
-    }else{
+    } else {
       setError("Username atau password salah");
     }
   };
 
   return (
-    <Box maxW="sm" mx="auto" mt={10} p={6} borderWidth={1} borderRadius="lg">
+    <Flex h="100vh" flexDir={{ base: "column", md: "row" }}>
+      {/* Bagian kiri (gambar) */}
+      <Box flex="1" bg="white" display="flex" alignItems="center" justifyContent="center">
+      <Image
+        src="/src/img/user firts welcome website.png"
+        alt="Login Illustration"
+        objectFit="contain"
+        maxW="100%"
+        maxH="100%"
+      />
+      </Box>
+
+
+      {/* Bagian kanan (form login) */}
+<Flex flex="1" align="center" justify="center" bg="white">
+  <Box
+    maxW="sm"
+    w="100%"
+    p={8}
+    borderWidth={1}
+    borderRadius="xl"
+    boxShadow="lg"
+    bg="white"
+  >
+    <VStack spacing={6} align="stretch">
+      <Heading size="lg" textAlign="center" color="teal.600">
+        Welcome Back 👋
+      </Heading>
+
+      {error && (
+        <Alert status="error" borderRadius="md">
+          <AlertIcon />
+          {error}
+        </Alert>
+      )}
+
       <VStack spacing={4}>
-        <Heading size="md">Login</Heading>
-        {error && (
-          <Alert status="error">
-            <AlertIcon />
-            {error}
-          </Alert>
-        )}
         <Input
-          placeholder="Username"
+          placeholder="Enter your username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          focusBorderColor="teal.400"
         />
         <Input
-          placeholder="Password"
+          placeholder="Enter your password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          focusBorderColor="teal.400"
         />
-        <Button colorScheme="teal" w="100%" onClick={handleLogin}>
+        <Button colorScheme="teal" w="100%" size="lg" onClick={handleLogin}>
           Login
         </Button>
       </VStack>
-    </Box>
+
+      <Box textAlign="center" fontSize="sm" color="gray.500">
+        Don’t have an account?{" "}
+        <Button variant="link" colorScheme="teal" size="sm">
+          Sign Up
+        </Button>
+      </Box>
+    </VStack>
+  </Box>
+ </Flex>
+
+    </Flex>
   );
 }
 

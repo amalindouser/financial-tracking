@@ -29,17 +29,17 @@ const RecordTable = ({ items = [], setItems }) => {
     keperluan: "",
     jenis: "pemasukan",
     keterangan: "",
-    jumlah: "",
+    jumlah: 0,
   });
 
-  // Tampilkan detail modal
+  // Detail modal
   const handleDetail = (item) => {
     setSelectedItem(item);
     setMode("detail");
     onOpen();
   };
 
-  // Tampilkan edit modal
+  // Edit modal
   const handleEdit = (item) => {
     setSelectedItem(item);
     setMode("edit");
@@ -52,37 +52,20 @@ const RecordTable = ({ items = [], setItems }) => {
     onOpen();
   };
 
-  // Simpan hasil edit ke backend dan update frontend
+  // Simpan hasil edit
   const handleSaveEdit = () => {
-  setItems(items.map(item =>
-    item.id === selectedItem.id ? { ...item, ...editValues } : item
-  ));
-
-  // Simpan ke localStorage
-  const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
-  const updated = allRecords.map(item =>
-    item.id === selectedItem.id ? { ...item, ...editValues } : item
-  );
-  localStorage.setItem("records", JSON.stringify(updated));
-
-  onClose();
-};
-
+    setItems(
+      items.map((item) =>
+        item.id === selectedItem.id ? { ...item, ...editValues } : item
+      )
+    );
+    onClose();
+  };
 
   // Hapus record
-  // Hapus record
-const handleDelete = (item) => {
-  // Hapus dari state
-  setItems((prev) => prev.filter((it) => it.id !== item.id));
-
-  // Hapus dari localStorage
-  const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
-  const updated = allRecords.filter((it) => it.id !== item.id);
-  localStorage.setItem("records", JSON.stringify(updated));
-};
-
-
-
+  const handleDelete = (item) => {
+    setItems((prev) => prev.filter((it) => it.id !== item.id));
+  };
 
   return (
     <>
@@ -97,16 +80,38 @@ const handleDelete = (item) => {
           </Tr>
         </Thead>
         <Tbody>
-          {items.map((item) => (
+          {items
+          .filter((item) => item.keperluang || item.keterangan || item.jumlah)
+          .map((item) => (
             <Tr key={item.id}>
               <Td>{item.keperluan}</Td>
               <Td>{item.jenis}</Td>
               <Td>{item.keterangan}</Td>
-              <Td isNumeric>Rp{item.jumlah.toLocaleString()}</Td>
+              <Td isNumeric>Rp{Number(item.jumlah || 0).toLocaleString()}</Td>
               <Td>
-                <Button size="sm" colorScheme="blue" mr={2} onClick={() => handleDetail(item)}>Detail</Button>
-                <Button size="sm" colorScheme="yellow" mr={2} onClick={() => handleEdit(item)}>Edit</Button>
-                <Button size="sm" colorScheme="red" onClick={() => handleDelete(item)}>Hapus</Button>
+                <Button
+                  size="sm"
+                  colorScheme="blue"
+                  mr={2}
+                  onClick={() => handleDetail(item)}
+                >
+                  Detail
+                </Button>
+                <Button
+                  size="sm"
+                  colorScheme="yellow"
+                  mr={2}
+                  onClick={() => handleEdit(item)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  colorScheme="red"
+                  onClick={() => handleDelete(item)}
+                >
+                  Hapus
+                </Button>
               </Td>
             </Tr>
           ))}
@@ -118,15 +123,26 @@ const handleDelete = (item) => {
         <Modal isOpen={isOpen} onClose={onClose}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>{mode === "detail" ? "Detail Catatan" : "Edit Catatan"}</ModalHeader>
+            <ModalHeader>
+              {mode === "detail" ? "Detail Catatan" : "Edit Catatan"}
+            </ModalHeader>
             <ModalCloseButton />
             <ModalBody pb={6}>
               {mode === "detail" ? (
                 <>
-                  <Text><b>Jenis Keperluan:</b> {selectedItem.keperluan}</Text>
-                  <Text><b>Jenis:</b> {selectedItem.jenis}</Text>
-                  <Text><b>Keterangan:</b> {selectedItem.keterangan}</Text>
-                  <Text><b>Jumlah:</b> Rp{selectedItem.jumlah.toLocaleString()}</Text>
+                  <Text>
+                    <b>Jenis Keperluan:</b> {selectedItem.keperluan}
+                  </Text>
+                  <Text>
+                    <b>Jenis:</b> {selectedItem.jenis}
+                  </Text>
+                  <Text>
+                    <b>Keterangan:</b> {selectedItem.keterangan}
+                  </Text>
+                  <Text>
+                    <b>Jumlah:</b> Rp
+                    {Number(selectedItem.jumlah || 0).toLocaleString()}
+                  </Text>
                 </>
               ) : (
                 <>
@@ -134,12 +150,16 @@ const handleDelete = (item) => {
                     mb={3}
                     placeholder="Jenis Keperluan"
                     value={editValues.keperluan}
-                    onChange={(e) => setEditValues({ ...editValues, keperluan: e.target.value })}
+                    onChange={(e) =>
+                      setEditValues({ ...editValues, keperluan: e.target.value })
+                    }
                   />
                   <Select
                     mb={3}
                     value={editValues.jenis}
-                    onChange={(e) => setEditValues({ ...editValues, jenis: e.target.value })}
+                    onChange={(e) =>
+                      setEditValues({ ...editValues, jenis: e.target.value })
+                    }
                   >
                     <option value="pemasukan">Pemasukan</option>
                     <option value="pengeluaran">Pengeluaran</option>
@@ -148,21 +168,35 @@ const handleDelete = (item) => {
                     mb={3}
                     placeholder="Keterangan"
                     value={editValues.keterangan}
-                    onChange={(e) => setEditValues({ ...editValues, keterangan: e.target.value })}
+                    onChange={(e) =>
+                      setEditValues({
+                        ...editValues,
+                        keterangan: e.target.value,
+                      })
+                    }
                   />
                   <Input
                     type="number"
                     placeholder="Jumlah"
                     value={editValues.jumlah}
-                    onChange={(e) => setEditValues({ ...editValues, jumlah: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setEditValues({
+                        ...editValues,
+                        jumlah: parseFloat(e.target.value) || 0,
+                      })
+                    }
                   />
                 </>
               )}
             </ModalBody>
             {mode === "edit" && (
               <ModalFooter>
-                <Button colorScheme="teal" mr={3} onClick={handleSaveEdit}>Simpan</Button>
-                <Button variant="ghost" onClick={onClose}>Batal</Button>
+                <Button colorScheme="teal" mr={3} onClick={handleSaveEdit}>
+                  Simpan
+                </Button>
+                <Button variant="ghost" onClick={onClose}>
+                  Batal
+                </Button>
               </ModalFooter>
             )}
           </ModalContent>

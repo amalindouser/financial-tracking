@@ -26,8 +26,10 @@ const Savings = () => {
 
   // Simpan saldo baru
   const handleSaveSaldo = () => {
-    const newSaldo = parseeFload(inputSaldo);
-    if (isNaN(newSaldo)) return;
+    const tambahSaldo = parseFloat(inputSaldo);
+    if (isNaN(tambahSaldo)) return;
+
+    const newSaldo = saldoAwal + tambahSaldo;
     setSaldoAwal(newSaldo);
     localStorage.setItem("saldo", JSON.stringify(newSaldo));
     setInputSaldo("");
