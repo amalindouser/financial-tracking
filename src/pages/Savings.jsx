@@ -21,12 +21,11 @@ import {
   Legend,
 } from "recharts";
 
-const COLORS = ["#E53E3E", "#3182CE", "#38A169", "#D69E2E", "#805AD5"];
-
 const Savings = () => {
   const [saldoAwal, setSaldoAwal] = useState(0);
   const [inputSaldo, setInputSaldo] = useState("");
   const [weeklyData, setWeeklyData] = useState([]);
+  const [summary, setSummary] = useState({ pemasukan: 0, pengeluaran: 0 });
 
   // Ambil saldo awal dari localStorage
   useEffect(() => {
@@ -36,40 +35,31 @@ const Savings = () => {
     }
   }, []);
 
-  // Ambil records untuk grafik pengeluaran
+  // Ambil records untuk grafik
   useEffect(() => {
     const records = JSON.parse(localStorage.getItem("records") || "[]");
 
-    // Filter hanya pengeluaran
-    const expenses = [];
+    const sum = { pemasukan: 0, pengeluaran: 0 };
+
     records.forEach((r) => {
       if (r.items) {
         r.items.forEach((item) => {
           if (item.jenis === "pengeluaran") {
-            expenses.push({ date: r.date, amount: item.jumlah });
+            sum.pengeluaran += item.jumlah;
+          } else if (item.jenis === "pemasukan") {
+            sum.pemasukan += item.jumlah;
           }
         });
       }
     });
 
-    // Group berdasarkan minggu
-    const grouped = {};
-    expenses.forEach((exp) => {
-      const date = new Date(exp.date);
-      const weekKey = `${date.getFullYear()}-W${Math.ceil(date.getDate() / 7)}`;
-      if (!grouped[weekKey]) {
-        grouped[weekKey] = 0;
-      }
-      grouped[weekKey] += exp.amount;
-    });
+    setSummary(sum);
 
-    // Ubah ke array untuk chart
-    const chartData = Object.keys(grouped).map((week, idx) => ({
-      name: week,
-      value: grouped[week],
-      color: COLORS[idx % COLORS.length],
-    }));
-
+    // data chart
+    const chartData = [
+      { name: "Pemasukan", value: sum.pemasukan, color: "#38A169" },
+      { name: "Pengeluaran", value: sum.pengeluaran, color: "#E53E3E" },
+    ];
     setWeeklyData(chartData);
   }, []);
 
@@ -101,10 +91,12 @@ const Savings = () => {
     setInputSaldo("");
   };
 
+  const totalTabungan = saldoAwal + summary.pemasukan - summary.pengeluaran;
+
   return (
     <Box p={4}>
-      {/* Card Saldo */}
-      <Box display="flex" justifyContent="center">
+      {/* Card Saldo Awal */}
+      <Box display="flex" justifyContent="center" mb={6}>
         <Card w="400px" shadow="md" borderRadius="lg">
           <CardHeader>
             <Heading size="md">Saldo Tabungan</Heading>
@@ -138,31 +130,63 @@ const Savings = () => {
         </Card>
       </Box>
 
-      {/* Grafik Pengeluaran Donut */}
-      <Box mt={10} w="100%" h="300px">
-        <Heading size="sm" mb={4}>
-          Grafik Pengeluaran per Minggu
-        </Heading>
-        <ResponsiveContainer>
-          <PieChart>
-            <Pie
-              data={weeklyData}
-              cx="50%"
-              cy="50%"
-              outerRadius={100}
-              innerRadius={50} // 🔹 jadi donut
-              dataKey="value"
-              label
-            >
-              {weeklyData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
-      </Box>
+      {/* Card Tabungan Bersih + Donut Chart */}
+      <Flex gap={6} justify="center" flexWrap="wrap" mt={6}>
+        {/* Card Tabungan Bersih */}
+        <Card w="350px" shadow="lg" borderRadius="lg" bg="green.50">
+          <CardHeader>
+            <Heading size="md" color="green.700">
+              Total Tabungan Bersih
+            </Heading>
+          </CardHeader>
+          <CardBody>
+            <Text fontSize="2xl" fontWeight="bold" color="green.600">
+              Rp {totalTabungan.toLocaleString("id-ID")}
+            </Text>
+            <Text fontSize="sm" mt={2}>
+              (Saldo Awal + Pemasukan − Pengeluaran)
+            </Text>
+            <Box mt={3}>
+              <Text fontSize="sm" color="green.700">
+                Pemasukan: Rp {summary.pemasukan.toLocaleString("id-ID")}
+              </Text>
+              <Text fontSize="sm" color="red.600">
+                Pengeluaran: Rp {summary.pengeluaran.toLocaleString("id-ID")}
+              </Text>
+            </Box>
+          </CardBody>
+        </Card>
+
+        {/* Donut Chart */}
+        <Card w="400px" shadow="lg" borderRadius="lg">
+          <CardHeader>
+            <Heading size="md">Grafik Pemasukan vs Pengeluaran</Heading>
+          </CardHeader>
+          <CardBody>
+            <Box w="100%" h="250px">
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie
+                    data={weeklyData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    innerRadius={50}
+                    dataKey="value"
+                    label
+                  >
+                    {weeklyData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Box>
+          </CardBody>
+        </Card>
+      </Flex>
     </Box>
   );
 };

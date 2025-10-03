@@ -58,7 +58,7 @@ const RecordTable = ({ items = [], setItems, date }) => {
     );
     setItems(updatedItems);
 
-    // Update localStorage tanpa duplikasi
+    // Update localStorage
     const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
     const recordIndex = allRecords.findIndex((r) => r.date === date);
     if (recordIndex >= 0) {
@@ -82,6 +82,20 @@ const RecordTable = ({ items = [], setItems, date }) => {
     }
   };
 
+  // Warna baris berdasarkan jenis
+  const getRowColor = (jenis) => {
+    switch (jenis) {
+      case "pemasukan":
+        return "blue.50";
+      case "pengeluaran":
+        return "red.50";
+      case "tabungan":
+        return "green.50";
+      default:
+        return "transparent";
+    }
+  };
+
   return (
     <>
       <Table variant="simple" size="sm">
@@ -95,46 +109,39 @@ const RecordTable = ({ items = [], setItems, date }) => {
           </Tr>
         </Thead>
         <Tbody>
-          {items
-            .filter(
-              (item) =>
-                item.keperluan || item.keterangan || item.jumlah !== undefined
-            )
-            .map((item) => (
-              <Tr key={item.id}>
-                <Td>{item.keperluan}</Td>
-                <Td>{item.jenis}</Td>
-                <Td>{item.keterangan}</Td>
-                <Td isNumeric>
-                  Rp{Number(item.jumlah || 0).toLocaleString()}
-                </Td>
-                <Td>
-                  <Button
-                    size="sm"
-                    colorScheme="blue"
-                    mr={2}
-                    onClick={() => handleDetail(item)}
-                  >
-                    Detail
-                  </Button>
-                  <Button
-                    size="sm"
-                    colorScheme="yellow"
-                    mr={2}
-                    onClick={() => handleEdit(item)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    colorScheme="red"
-                    onClick={() => handleDelete(item)}
-                  >
-                    Hapus
-                  </Button>
-                </Td>
-              </Tr>
-            ))}
+          {items.map((item) => (
+            <Tr key={item.id} bg={getRowColor(item.jenis)}>
+              <Td>{item.keperluan}</Td>
+              <Td>{item.jenis}</Td>
+              <Td>{item.keterangan}</Td>
+              <Td isNumeric>Rp{Number(item.jumlah || 0).toLocaleString()}</Td>
+              <Td>
+                <Button
+                  size="sm"
+                  colorScheme="blue"
+                  mr={2}
+                  onClick={() => handleDetail(item)}
+                >
+                  Detail
+                </Button>
+                <Button
+                  size="sm"
+                  colorScheme="yellow"
+                  mr={2}
+                  onClick={() => handleEdit(item)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  colorScheme="red"
+                  onClick={() => handleDelete(item)}
+                >
+                  Hapus
+                </Button>
+              </Td>
+            </Tr>
+          ))}
         </Tbody>
       </Table>
 
@@ -183,6 +190,7 @@ const RecordTable = ({ items = [], setItems, date }) => {
                   >
                     <option value="pemasukan">Pemasukan</option>
                     <option value="pengeluaran">Pengeluaran</option>
+                    <option value="tabungan">Tabungan</option>
                   </Select>
                   <Input
                     mb={3}

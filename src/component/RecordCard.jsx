@@ -66,13 +66,14 @@ const RecordCard = ({ date, onDeleteCard, saldoAwal }) => {
     localStorage.setItem("records", JSON.stringify(allRecords));
     loadData();
 
+    // Reset input
     setKeperluan("");
     setJenis("pemasukan");
     setKeterangan("");
     setJumlah("");
   };
 
-  // 🔹 Hitung total pemasukan & pengeluaran
+  // 🔹 Hitung total pemasukan, pengeluaran, tabungan
   const totalPemasukan = items
     .filter((item) => item.jenis === "pemasukan")
     .reduce((sum, item) => sum + item.jumlah, 0);
@@ -81,23 +82,40 @@ const RecordCard = ({ date, onDeleteCard, saldoAwal }) => {
     .filter((item) => item.jenis === "pengeluaran")
     .reduce((sum, item) => sum + item.jumlah, 0);
 
-  // 🔹 Saldo akhir = saldo awal dari parent + transaksi hari ini
-  // 🔹 Saldo akhir = saldo awal dari parent + transaksi hari ini
-const saldoAkhir = (saldoAwal || 0) + totalPemasukan - totalPengeluaran;
+  const totalTabungan = items
+    .filter((item) => item.jenis === "tabungan")
+    .reduce((sum, item) => sum + item.jumlah, 0);
+
+  // 🔹 Saldo akhir
+  const saldoAkhir =
+    (saldoAwal || 0) + totalPemasukan - totalPengeluaran + totalTabungan;
 
   return (
-    <Box borderWidth="1px" borderRadius="lg" p={{ base: 3, md: 5 }} boxShadow="md" bg="white" w="100%">
+    <Box
+      borderWidth="1px"
+      borderRadius="lg"
+      p={{ base: 3, md: 5 }}
+      boxShadow="md"
+      bg="white"
+      w="100%"
+    >
+      {/* Header Card */}
       <HStack justify="space-between" align="center" mb={4}>
         <Heading size={{ base: "md", md: "lg" }}>Catatan {date}</Heading>
         <HStack spacing={2}>
-          <Box bg="green.100" px={2} py={1} borderRadius="md">
-            <Text fontSize="sm" color="green.700">
+          <Box bg="blue.100" px={2} py={1} borderRadius="md">
+            <Text fontSize="sm" color="blue.700">
               + {totalPemasukan.toLocaleString("id-ID")}
             </Text>
           </Box>
           <Box bg="red.100" px={2} py={1} borderRadius="md">
             <Text fontSize="sm" color="red.700">
               - {totalPengeluaran.toLocaleString("id-ID")}
+            </Text>
+          </Box>
+          <Box bg="green.100" px={2} py={1} borderRadius="md">
+            <Text fontSize="sm" color="green.700">
+              💰 {totalTabungan.toLocaleString("id-ID")}
             </Text>
           </Box>
           <Box bg="teal.100" px={2} py={1} borderRadius="md">
@@ -121,8 +139,15 @@ const saldoAkhir = (saldoAwal || 0) + totalPemasukan - totalPengeluaran;
         </HStack>
       </HStack>
 
+      {/* Collapse Form & Tabel */}
       <Collapse in={isOpen} animateOpacity>
-        <Stack direction={{ base: "column", md: "row" }} spacing={3} mb={4} align={{ base: "stretch", md: "flex-end" }}>
+        {/* Form Input */}
+        <Stack
+          direction={{ base: "column", md: "row" }}
+          spacing={3}
+          mb={4}
+          align={{ base: "stretch", md: "flex-end" }}
+        >
           <Input
             placeholder="Jenis Keperluan"
             value={keperluan}
@@ -132,6 +157,7 @@ const saldoAkhir = (saldoAwal || 0) + totalPemasukan - totalPengeluaran;
           <Select value={jenis} onChange={(e) => setJenis(e.target.value)} flex="1">
             <option value="pemasukan">Pemasukan</option>
             <option value="pengeluaran">Pengeluaran</option>
+            <option value="tabungan">Tabungan</option>
           </Select>
           <Input
             placeholder="Keterangan"
@@ -147,11 +173,16 @@ const saldoAkhir = (saldoAwal || 0) + totalPemasukan - totalPengeluaran;
             flex="1"
             inputMode="numeric"
           />
-          <Button colorScheme="teal" onClick={handleAddItem} w={{ base: "100%", md: "auto" }}>
+          <Button
+            colorScheme="teal"
+            onClick={handleAddItem}
+            w={{ base: "100%", md: "auto" }}
+          >
             Tambah
           </Button>
         </Stack>
 
+        {/* Tabel */}
         <Box overflowX="auto">
           {items.length > 0 ? (
             <RecordTable items={items} setItems={setItems} date={date} />
