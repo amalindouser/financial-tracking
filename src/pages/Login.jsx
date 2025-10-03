@@ -37,12 +37,14 @@ function Login({ onLogin }) {
       {/* Bagian kiri (gambar) */}
       <Box flex="1" bg="white" display="flex" alignItems="center" justifyContent="center">
       <Image
-        src="src\assets\img\user firts welcome website.png"
-        alt="Login Illustration"
-        objectFit="contain"
-        maxW="100%"
-        maxH="100%"
-      />
+      src="/img/user firts welcome website.png"
+      alt="Login Illustration"
+      objectFit="contain"
+      marginLeft="25"
+      maxW="100%"
+      maxH="100%"
+    />
+
       </Box>
 
 

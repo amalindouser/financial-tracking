@@ -1,4 +1,3 @@
-// RecordCard.jsx
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -26,48 +25,60 @@ const RecordCard = ({ date, onDeleteCard }) => {
 
   const toggleOpen = () => setIsOpen(!isOpen);
 
-  // 🔹 Ambil data record sesuai tanggal dari localStorage
-  useEffect(() => {
+  // 🔹 Ambil data berdasarkan date
+  const loadData = () => {
     const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
-    const filtered = allRecords.filter((record) => record.date === date);
-    setItems(filtered);
+    const record = allRecords.find((r) => r.date === date);
+
+    setItems(record && Array.isArray(record.items) ? record.items : []);
+  };
+
+  // 🔹 Ambil saldo awal dari Savings + load data
+  useEffect(() => {
+    const savedSaldo = parseFloat(localStorage.getItem("saldo") || "0");
+    setSaldoAwal(savedSaldo);
+
+    loadData();
   }, [date]);
 
-  // 🔹 Ambil saldo dari localStorage
-  useEffect(() => {
-    const storedSaldo = JSON.parse(localStorage.getItem("saldo") || "0");
-    setSaldoAwal(storedSaldo);
-  }, []);
-
-  // 🔹 Tambah record baru + update saldo di localStorage
+  // 🔹 Tambah record baru
   const handleAddItem = () => {
     const jumlahNum = parseFloat(jumlah);
     if (!keperluan || isNaN(jumlahNum)) return;
 
-    const newRecord = { keperluan, jenis, keterangan, jumlah: jumlahNum, date };
+    const newItem = {
+      id: Date.now(),
+      keperluan,
+      jenis,
+      keterangan,
+      jumlah: jumlahNum,
+    };
 
-    // simpan ke local state
-    const updated = [...items, newRecord];
-    setItems(updated);
-
-    // simpan ke localStorage
     const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
-    localStorage.setItem("records", JSON.stringify([...allRecords, newRecord]));
+    const recordIndex = allRecords.findIndex((r) => r.date === date);
 
-    // hitung saldo baru
-    const newSaldo =
-      jenis === "pemasukan" ? saldoAwal + jumlahNum : saldoAwal - jumlahNum;
-    setSaldoAwal(newSaldo);
-    localStorage.setItem("saldo", JSON.stringify(newSaldo));
+    if (recordIndex >= 0) {
+      if (!Array.isArray(allRecords[recordIndex].items)) {
+        allRecords[recordIndex].items = [];
+      }
+      allRecords[recordIndex].items.push(newItem);
+    } else {
+      allRecords.push({
+        date: date,
+        items: [newItem],
+      });
+    }
 
-    // reset form
+    localStorage.setItem("records", JSON.stringify(allRecords));
+    loadData();
+
     setKeperluan("");
     setJenis("pemasukan");
     setKeterangan("");
     setJumlah("");
   };
 
-  // 🔹 Total pemasukan & pengeluaran di card ini
+  // 🔹 Hitung total pemasukan & pengeluaran
   const totalPemasukan = items
     .filter((item) => item.jenis === "pemasukan")
     .reduce((sum, item) => sum + item.jumlah, 0);
@@ -76,8 +87,8 @@ const RecordCard = ({ date, onDeleteCard }) => {
     .filter((item) => item.jenis === "pengeluaran")
     .reduce((sum, item) => sum + item.jumlah, 0);
 
-  // saldo ambil dari global saldo
-  const saldo = saldoAwal;
+  // 🔹 Saldo akhir = saldo awal dari Savings + transaksi hari ini
+  const saldoAkhir = saldoAwal + totalPemasukan - totalPengeluaran;
 
   return (
     <Box
@@ -103,7 +114,7 @@ const RecordCard = ({ date, onDeleteCard }) => {
           </Box>
           <Box bg="teal.100" px={2} py={1} borderRadius="md">
             <Text fontSize="sm" color="teal.700">
-              Saldo: {saldo.toLocaleString("id-ID")}
+              Saldo: {saldoAkhir.toLocaleString("id-ID")}
             </Text>
           </Box>
           <IconButton
@@ -168,19 +179,9 @@ const RecordCard = ({ date, onDeleteCard }) => {
 
         <Box overflowX="auto">
           {items.length > 0 ? (
-            <RecordTable
-              items={items}
-              setItems={setItems}
-              saldoAwal={saldoAwal}
-              setSaldoAwal={setSaldoAwal}
-            />
+            <RecordTable items={items} setItems={setItems} date={date} />
           ) : (
-            <Text
-              fontSize="sm"
-              color="gray.500"
-              textAlign="center"
-              py={4}
-            >
+            <Text fontSize="sm" color="gray.500" textAlign="center" py={4}>
               Belum ada catatan.
             </Text>
           )}

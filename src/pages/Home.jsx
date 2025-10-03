@@ -1,25 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Flex, Stack } from "@chakra-ui/react";
 import AddRecordModal from "../component/AddRecordModal";
 import RecordCard from "../component/RecordCard";
 
 const Home = () => {
-  const [records, setRecords] = useState(()=> {
+  const [records, setRecords] = useState(() => {
     const saved = localStorage.getItem("records");
     return saved ? JSON.parse(saved) : [];
   });
 
-  React.useEffect(() => {
+  // Sinkronisasi ke localStorage saat records berubah
+  useEffect(() => {
     localStorage.setItem("records", JSON.stringify(records));
   }, [records]);
 
   const handleAddRecord = (newRecord) => {
-    if (records.some((record) => record.date === newRecord.date)) return;
-    setRecords([...records, newRecord]);
-  };
+  const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
+
+  if (!allRecords.find((r) => r.date === newRecord.date)) {
+    allRecords.push(newRecord);
+  }
+
+  localStorage.setItem("records", JSON.stringify(allRecords));
+  setRecords(allRecords);
+};
+
 
   const handleDeleteCard = (date) => {
-    setRecords(records.filter((record) => record.date !== date));
+    setRecords(records.filter(record => record.date !== date));
   };
 
   return (
@@ -29,11 +37,12 @@ const Home = () => {
       </Flex>
 
       <Stack spacing={6}>
-        {records.map((record) => (
-          <RecordCard 
-          key={record.id} 
-          date={record.date} 
-          onDeleteCard={handleDeleteCard}/>
+        {records.map(record => (
+          <RecordCard
+            key={record.id}
+            date={record.date}
+            onDeleteCard={handleDeleteCard}
+          />
         ))}
       </Stack>
     </Box>

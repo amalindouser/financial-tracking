@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Input,
@@ -10,28 +10,46 @@ import {
   CardFooter,
   Heading,
   Stack,
+  Flex,
 } from "@chakra-ui/react";
 
 const Savings = () => {
   const [saldoAwal, setSaldoAwal] = useState(0);
   const [inputSaldo, setInputSaldo] = useState("");
 
-  // Ambil saldo awal
+  // Ambil saldo awal dari localStorage
   useEffect(() => {
     const saveSaldo = localStorage.getItem("saldo");
     if (saveSaldo) {
-      setSaldoAwal(parseFloat(saveSaldo));
+      setSaldoAwal(JSON.parse(saveSaldo)); // ✅ lebih aman pakai JSON.parse
     }
   }, []);
 
-  // Simpan saldo baru
-  const handleSaveSaldo = () => {
+  // Tambah saldo
+  const handleAddSaldo = () => {
     const tambahSaldo = parseFloat(inputSaldo);
     if (isNaN(tambahSaldo)) return;
 
     const newSaldo = saldoAwal + tambahSaldo;
     setSaldoAwal(newSaldo);
     localStorage.setItem("saldo", JSON.stringify(newSaldo));
+    setInputSaldo("");
+  };
+
+  // Edit saldo (ganti langsung)
+  const handleEditSaldo = () => {
+    const editSaldo = parseFloat(inputSaldo);
+    if (isNaN(editSaldo)) return;
+
+    setSaldoAwal(editSaldo);
+    localStorage.setItem("saldo", JSON.stringify(editSaldo));
+    setInputSaldo("");
+  };
+
+  // Reset saldo ke 0
+  const handleResetSaldo = () => {
+    setSaldoAwal(0);
+    localStorage.setItem("saldo", JSON.stringify(0));
     setInputSaldo("");
   };
 
@@ -44,20 +62,28 @@ const Savings = () => {
         <CardBody>
           <Stack spacing={3}>
             <Text fontWeight="bold">
-              Saldo Awal: Rp {saldoAwal.toLocaleString()}
+              Saldo: Rp {saldoAwal.toLocaleString("id-ID")}
             </Text>
             <Input
               type="number"
-              placeholder="Masukkan saldo awal"
+              placeholder="Masukkan jumlah saldo"
               value={inputSaldo}
               onChange={(e) => setInputSaldo(e.target.value)}
             />
           </Stack>
         </CardBody>
         <CardFooter>
-          <Button colorScheme="teal" onClick={handleSaveSaldo} w="full">
-            Simpan
-          </Button>
+          <Flex gap={2} w="full">
+            <Button colorScheme="teal" onClick={handleAddSaldo} w="full">
+              Tambah
+            </Button>
+            <Button colorScheme="orange" onClick={handleEditSaldo} w="full">
+              Edit
+            </Button>
+            <Button colorScheme="red" onClick={handleResetSaldo} w="full">
+              Reset
+            </Button>
+          </Flex>
         </CardFooter>
       </Card>
     </Box>

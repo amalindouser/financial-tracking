@@ -1,4 +1,3 @@
-// RecordTable.jsx
 import React, { useState } from "react";
 import {
   Table,
@@ -21,7 +20,7 @@ import {
   Select,
 } from "@chakra-ui/react";
 
-const RecordTable = ({ items = [], setItems }) => {
+const RecordTable = ({ items = [], setItems, date }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedItem, setSelectedItem] = useState(null);
   const [mode, setMode] = useState("detail");
@@ -54,17 +53,33 @@ const RecordTable = ({ items = [], setItems }) => {
 
   // Simpan hasil edit
   const handleSaveEdit = () => {
-    setItems(
-      items.map((item) =>
-        item.id === selectedItem.id ? { ...item, ...editValues } : item
-      )
+    const updatedItems = items.map((item) =>
+      item.id === selectedItem.id ? { ...item, ...editValues } : item
     );
+    setItems(updatedItems);
+
+    // Update localStorage tanpa duplikasi
+    const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
+    const recordIndex = allRecords.findIndex((r) => r.date === date);
+    if (recordIndex >= 0) {
+      allRecords[recordIndex].items = updatedItems;
+      localStorage.setItem("records", JSON.stringify(allRecords));
+    }
+
     onClose();
   };
 
   // Hapus record
   const handleDelete = (item) => {
-    setItems((prev) => prev.filter((it) => it.id !== item.id));
+    const updatedItems = items.filter((it) => it.id !== item.id);
+    setItems(updatedItems);
+
+    const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
+    const recordIndex = allRecords.findIndex((r) => r.date === date);
+    if (recordIndex >= 0) {
+      allRecords[recordIndex].items = updatedItems;
+      localStorage.setItem("records", JSON.stringify(allRecords));
+    }
   };
 
   return (
@@ -81,40 +96,45 @@ const RecordTable = ({ items = [], setItems }) => {
         </Thead>
         <Tbody>
           {items
-          .filter((item) => item.keperluang || item.keterangan || item.jumlah)
-          .map((item) => (
-            <Tr key={item.id}>
-              <Td>{item.keperluan}</Td>
-              <Td>{item.jenis}</Td>
-              <Td>{item.keterangan}</Td>
-              <Td isNumeric>Rp{Number(item.jumlah || 0).toLocaleString()}</Td>
-              <Td>
-                <Button
-                  size="sm"
-                  colorScheme="blue"
-                  mr={2}
-                  onClick={() => handleDetail(item)}
-                >
-                  Detail
-                </Button>
-                <Button
-                  size="sm"
-                  colorScheme="yellow"
-                  mr={2}
-                  onClick={() => handleEdit(item)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  colorScheme="red"
-                  onClick={() => handleDelete(item)}
-                >
-                  Hapus
-                </Button>
-              </Td>
-            </Tr>
-          ))}
+            .filter(
+              (item) =>
+                item.keperluan || item.keterangan || item.jumlah !== undefined
+            )
+            .map((item) => (
+              <Tr key={item.id}>
+                <Td>{item.keperluan}</Td>
+                <Td>{item.jenis}</Td>
+                <Td>{item.keterangan}</Td>
+                <Td isNumeric>
+                  Rp{Number(item.jumlah || 0).toLocaleString()}
+                </Td>
+                <Td>
+                  <Button
+                    size="sm"
+                    colorScheme="blue"
+                    mr={2}
+                    onClick={() => handleDetail(item)}
+                  >
+                    Detail
+                  </Button>
+                  <Button
+                    size="sm"
+                    colorScheme="yellow"
+                    mr={2}
+                    onClick={() => handleEdit(item)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    colorScheme="red"
+                    onClick={() => handleDelete(item)}
+                  >
+                    Hapus
+                  </Button>
+                </Td>
+              </Tr>
+            ))}
         </Tbody>
       </Table>
 

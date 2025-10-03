@@ -18,70 +18,43 @@ import {
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { Link, useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ onLogout }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
 
-  // cek token dari localStorage
   const token = localStorage.getItem("token");
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login"); // redirect ke login setelah logout
+  const handleLogoutClick = () => {
+    onLogout();
+    navigate("/login");
   };
 
   return (
     <Box bg="teal.500" px={4} py={2} color="white">
       <Flex alignItems="center" justifyContent="space-between">
-        {/* Logo */}
         <Text fontSize="lg" fontWeight="bold">
           Financial Tracker
         </Text>
 
-        {/* Desktop Menu */}
         <HStack spacing={4} display={{ base: "none", md: "flex" }}>
-          <Button
-            as={Link}
-            to="/"
-            variant="ghost"
-            _hover={{ bg: "teal.600" }}
-            color="white"
-          >
+          <Button as={Link} to="/" variant="ghost" _hover={{ bg: "teal.600" }} color="white">
             Home
           </Button>
-          <Button
-            as={Link}
-            to="/savings"
-            variant="ghost"
-            _hover={{ bg: "teal.600" }}
-            color="white"
-          >
+          <Button as={Link} to="/savings" variant="ghost" _hover={{ bg: "teal.600" }} color="white">
             Tabungan
           </Button>
 
           {!token ? (
-            <Button
-              as={Link}
-              to="/login"
-              variant="ghost"
-              _hover={{ bg: "teal.600" }}
-              color="white"
-            >
+            <Button as={Link} to="/login" variant="ghost" _hover={{ bg: "teal.600" }} color="white">
               Login
             </Button>
           ) : (
-            <Button
-              onClick={handleLogout}
-              variant="ghost"
-              _hover={{ bg: "teal.600" }}
-              color="white"
-            >
+            <Button onClick={handleLogoutClick} variant="ghost" _hover={{ bg: "teal.600" }} color="white">
               Logout
             </Button>
           )}
         </HStack>
 
-        {/* Hamburger (Mobile Only) */}
         <IconButton
           aria-label="Open Menu"
           icon={<HamburgerIcon />}
@@ -93,7 +66,6 @@ const Navbar = () => {
         />
       </Flex>
 
-      {/* Drawer for Mobile Menu */}
       <Drawer placement="right" onClose={onClose} isOpen={isOpen}>
         <DrawerOverlay />
         <DrawerContent>
@@ -109,16 +81,11 @@ const Navbar = () => {
               </Button>
 
               {!token ? (
-                <Button
-                  as={Link}
-                  to="/login"
-                  variant="ghost"
-                  onClick={onClose}
-                >
+                <Button as={Link} to="/login" variant="ghost" onClick={onClose}>
                   Login
                 </Button>
               ) : (
-                <Button variant="ghost" onClick={handleLogout}>
+                <Button variant="ghost" onClick={handleLogoutClick}>
                   Logout
                 </Button>
               )}
