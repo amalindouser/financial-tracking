@@ -14,14 +14,13 @@ import {
 import { ChevronDownIcon, ChevronUpIcon, DeleteIcon } from "@chakra-ui/icons";
 import RecordTable from "./RecordTable";
 
-const RecordCard = ({ date, onDeleteCard }) => {
+const RecordCard = ({ date, onDeleteCard, saldoAwal }) => {
   const [items, setItems] = useState([]);
   const [keperluan, setKeperluan] = useState("");
   const [jenis, setJenis] = useState("pemasukan");
   const [keterangan, setKeterangan] = useState("");
   const [jumlah, setJumlah] = useState("");
   const [isOpen, setIsOpen] = useState(true);
-  const [saldoAwal, setSaldoAwal] = useState(0);
 
   const toggleOpen = () => setIsOpen(!isOpen);
 
@@ -29,15 +28,10 @@ const RecordCard = ({ date, onDeleteCard }) => {
   const loadData = () => {
     const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
     const record = allRecords.find((r) => r.date === date);
-
     setItems(record && Array.isArray(record.items) ? record.items : []);
   };
 
-  // 🔹 Ambil saldo awal dari Savings + load data
   useEffect(() => {
-    const savedSaldo = parseFloat(localStorage.getItem("saldo") || "0");
-    setSaldoAwal(savedSaldo);
-
     loadData();
   }, [date]);
 
@@ -87,18 +81,12 @@ const RecordCard = ({ date, onDeleteCard }) => {
     .filter((item) => item.jenis === "pengeluaran")
     .reduce((sum, item) => sum + item.jumlah, 0);
 
-  // 🔹 Saldo akhir = saldo awal dari Savings + transaksi hari ini
-  const saldoAkhir = saldoAwal + totalPemasukan - totalPengeluaran;
+  // 🔹 Saldo akhir = saldo awal dari parent + transaksi hari ini
+  // 🔹 Saldo akhir = saldo awal dari parent + transaksi hari ini
+const saldoAkhir = (saldoAwal || 0) + totalPemasukan - totalPengeluaran;
 
   return (
-    <Box
-      borderWidth="1px"
-      borderRadius="lg"
-      p={{ base: 3, md: 5 }}
-      boxShadow="md"
-      bg="white"
-      w="100%"
-    >
+    <Box borderWidth="1px" borderRadius="lg" p={{ base: 3, md: 5 }} boxShadow="md" bg="white" w="100%">
       <HStack justify="space-between" align="center" mb={4}>
         <Heading size={{ base: "md", md: "lg" }}>Catatan {date}</Heading>
         <HStack spacing={2}>
@@ -134,23 +122,14 @@ const RecordCard = ({ date, onDeleteCard }) => {
       </HStack>
 
       <Collapse in={isOpen} animateOpacity>
-        <Stack
-          direction={{ base: "column", md: "row" }}
-          spacing={3}
-          mb={4}
-          align={{ base: "stretch", md: "flex-end" }}
-        >
+        <Stack direction={{ base: "column", md: "row" }} spacing={3} mb={4} align={{ base: "stretch", md: "flex-end" }}>
           <Input
             placeholder="Jenis Keperluan"
             value={keperluan}
             onChange={(e) => setKeperluan(e.target.value)}
             flex="1"
           />
-          <Select
-            value={jenis}
-            onChange={(e) => setJenis(e.target.value)}
-            flex="1"
-          >
+          <Select value={jenis} onChange={(e) => setJenis(e.target.value)} flex="1">
             <option value="pemasukan">Pemasukan</option>
             <option value="pengeluaran">Pengeluaran</option>
           </Select>
@@ -168,11 +147,7 @@ const RecordCard = ({ date, onDeleteCard }) => {
             flex="1"
             inputMode="numeric"
           />
-          <Button
-            colorScheme="teal"
-            onClick={handleAddItem}
-            w={{ base: "100%", md: "auto" }}
-          >
+          <Button colorScheme="teal" onClick={handleAddItem} w={{ base: "100%", md: "auto" }}>
             Tambah
           </Button>
         </Stack>
